@@ -8,24 +8,26 @@ module.exports = (_, argv) => {
   const isProduction = argv.mode === 'production';
 
   const config = {
-    entry: './index.tsx',
+    entry: './src/index.jsx',
     output: {
+      path: `${__dirname}/dist`,
       filename: 'bundle.js',
+      publicPath: '/',
     },
     module: {
       rules: [
         {
-          test: /\.(js|jsx?)$/,
+          test: /.(js|jsx?)$/,
           exclude: /node_modules/,
           use: ['babel-loader'],
         },
         {
-          test: /\.tsx?$/,
-          exclude: /node_modules/,
-          use: 'ts-loader',
+          test: /\.(png|jpe?g|gif|svg)$/i,
+          type: 'asset/resource',
+          use: 'file-loader',
         },
         {
-          test: /\.s?css$/,
+          test: /.s?css$/,
           use: [
             isProduction ? MiniCssExtractPlugin.loader : 'style-loader',
             'css-loader',
@@ -35,13 +37,13 @@ module.exports = (_, argv) => {
       ],
     },
     resolve: {
-      extensions: ['.js', '.jsx', '.ts', '.tsx'],
+      extensions: ['.js', '.jsx'],
     },
     plugins: [
       new webpack.ProgressPlugin(),
       new CleanWebpackPlugin(),
       new HtmlWebpackPlugin({
-        template: './index.html',
+        template: './src/index.html',
       }),
       new CopyPlugin({
         patterns: [{ from: '_redirects', to: '' }],
@@ -54,6 +56,10 @@ module.exports = (_, argv) => {
       port: 8080,
     },
   };
+
+  if (isProduction) {
+    config.plugins.push(new webpack.HotModuleReplacementPlugin());
+  }
 
   if (isProduction) {
     config.plugins.push(
